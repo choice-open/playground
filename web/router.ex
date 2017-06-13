@@ -15,6 +15,6 @@ defmodule Playground.Router do
     get "/surveys", SurveyController, :index
     get "/surveys/:id", SurveyController, :show
 
-    resources "/answers", AnswerController
+    resources "/answers", AnswerController, only: [:index, :create, :show, :delete]
   end
 end

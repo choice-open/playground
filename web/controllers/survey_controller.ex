@@ -12,9 +12,10 @@ defmodule Playground.SurveyController do
   end
 
   def show(conn, params) do
-    conn
-    |> put_resp_content_type("application/json")
-    |> send_resp(200, @survey)
+    #conn
+    ##|> put_resp_content_type("application/json")
+    #|> send_resp(200, @survey)
+    json conn, @survey
   end
   
 end
