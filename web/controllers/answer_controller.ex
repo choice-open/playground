@@ -5,6 +5,11 @@ defmodule Playground.AnswerController do
 
   #  plug :scrub_params, "answer2" when action in [:create]
 
+  @doc """
+    Returns the result you want
+  ## HTTP Verb and URL
+    GET /v1/answers
+  """
   def index(conn, _params) do
     total_count = Repo.aggregate(Answer, :count, :id)
     result = %{php_count: get_php(), ruby_count: get_ruby(), elixir_count: get_elixir, javascript_count: get_javascript, not_null_count: get_not_null, total_count: total_count}
@@ -12,6 +17,14 @@ defmodule Playground.AnswerController do
 
   end
 
+  @doc """
+    Submit a survey
+  ## HTTP Verb and URL
+    POST /v1/answers
+  ## RespCode
+    201 if created
+    400 if not
+  """
   def create(conn, %{"answer1" => a1, "answer2" => a2} = params) do
     changeset = Answer.changeset(%Answer{}, %{"answer1" => a1, "answer2" => String.trim(a2)})
     case Repo.insert(changeset) do
