@@ -6,6 +6,7 @@ defmodule Playground.PSQ do
   alias Playground.PSQ.Survey
   alias Playground.PSQ.Option
   alias Playground.PSQ.Question
+  alias Playground.PSQ.Answer
 
   def list_surveys do
     Repo.all(Survey)
@@ -102,6 +103,38 @@ defmodule Playground.PSQ do
     %Option{}
     |> Option.changeset(attrs)
     |> Repo.insert()
+  end
+
+
+
+  def list_answers(question_id) do
+    (from ans in Answer, where: ans.question_id == ^question_id)
+    |> Repo.all()
+  end
+
+  def create_answer(%{"question_id" => question_id, "survey_id" => survey_id} = attrs) do
+    question = get_question!(question_id, survey_id)
+    case question.type do
+      "select" ->
+        update_options(question.id, attrs["options_id"])
+        {:ok, %Answer{}}
+      "fill" ->
+        attrs = %{attrs | "content" => attrs["content"] |> String.trim()}
+        %Answer{}
+        |> Answer.changeset(attrs)
+        |> Repo.insert()
+      _ ->
+        {:error, %Answer{} |> Answer.changeset(attrs)}
+    end
+  end
+
+  def update_options(question_id, options_id) do
+    options_id
+    |> Enum.each(fn option_id ->
+      option = get_option!(option_id, question_id)
+      option = Ecto.Changeset.change option, count: option.count + 1
+      {:ok, _} = Repo.update(option)
+    end)
   end
 
 end
