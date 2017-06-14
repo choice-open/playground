@@ -32,7 +32,7 @@ defmodule Playground.Web.SurveyController do
     survey = PSQ.get_survey!(id)
 
     with {:ok, %Survey{} = survey} <- PSQ.update_survey(survey, survey_params) do
-      render(conn, "show.json", survey: survey)
+      json conn, survey_json(survey)
     end
   end
 
@@ -44,11 +44,32 @@ defmodule Playground.Web.SurveyController do
   end
 
   def survey_json(survey) do
-      %{
-        id: survey.id,
-        title: survey.title,
-      }
+    %{
+      id: survey.id,
+      title: survey.title,
+      questions: questions_json(survey.id),
+    }
   end
+
+  def questions_json(survey_id) do
+    PSQ.list_questions(survey_id)
+    |> Enum.map(fn q ->
+      %{
+        id: q.id,
+        type: q.type,
+        title: q.title,
+        required: q.required,
+        options: options_json(q.type, q.id),
+      }
+    end)
+  end
+
+  def options_json("fill", _question_id), do: nil
+  def options_json("select", question_id) do
+    PSQ.list_options(question_id)
+    |> Enum.map(&(%{id: &1.id, content: &1.content}))
+  end
+
 
 
   defp demo_survey do

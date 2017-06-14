@@ -9,7 +9,9 @@ defmodule Playground.Web.Router do
     pipe_through :api
 
     scope "/v1" do
-      resources "/surveys", SurveyController, except: [:new, :edit]
+      resources "/surveys", SurveyController, except: [:new, :edit] do
+        resources "/questions", QuestionController, except: [:index, :show, :new, :edit, :update]
+      end
     end
   end
 end

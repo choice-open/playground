@@ -29,7 +29,9 @@ defmodule Playground.Web.SurveyControllerTest do
     conn = get conn, survey_path(conn, :show, id)
     assert json_response(conn, 200) == %{
       "id" => id,
-      "title" => "some title"}
+      "title" => "some title",
+      "questions" => [],
+    }
   end
 
   test "does not create survey and renders errors when data is invalid", %{conn: conn} do
@@ -45,7 +47,9 @@ defmodule Playground.Web.SurveyControllerTest do
     conn = get conn, survey_path(conn, :show, id)
     assert json_response(conn, 200) == %{
       "id" => id,
-      "title" => "some updated title"}
+      "title" => "some updated title",
+      "questions" => [],
+    }
   end
 
   test "does not update chosen survey and renders errors when data is invalid", %{conn: conn} do

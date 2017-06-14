@@ -1,92 +1,107 @@
 defmodule Playground.PSQ do
-  @moduledoc """
-  The boundary for the PSQ system.
-  """
 
   import Ecto.Query, warn: false
   alias Playground.Repo
 
   alias Playground.PSQ.Survey
+  alias Playground.PSQ.Option
+  alias Playground.PSQ.Question
 
-  @doc """
-  Returns the list of surveys.
-
-  ## Examples
-
-      iex> list_surveys()
-      [%Survey{}, ...]
-
-  """
   def list_surveys do
     Repo.all(Survey)
   end
 
-  def get_survey(id), do: Repo.get(Survey, id)
-
   def get_survey!(id), do: Repo.get!(Survey, id)
 
-  @doc """
-  Creates a survey.
-
-  ## Examples
-
-      iex> create_survey(%{field: value})
-      {:ok, %Survey{}}
-
-      iex> create_survey(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
   def create_survey(attrs \\ %{}) do
     %Survey{}
     |> Survey.changeset(attrs)
     |> Repo.insert()
   end
 
-  @doc """
-  Updates a survey.
-
-  ## Examples
-
-      iex> update_survey(survey, %{field: new_value})
-      {:ok, %Survey{}}
-
-      iex> update_survey(survey, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
   def update_survey(%Survey{} = survey, attrs) do
     survey
     |> Survey.changeset(attrs)
     |> Repo.update()
   end
 
-  @doc """
-  Deletes a Survey.
-
-  ## Examples
-
-      iex> delete_survey(survey)
-      {:ok, %Survey{}}
-
-      iex> delete_survey(survey)
-      {:error, %Ecto.Changeset{}}
-
-  """
   def delete_survey(%Survey{} = survey) do
+    from(q in Question, where: q.survey_id == ^survey.id)
+    |> Repo.all()
+    |> Enum.map(&delete_question/1)
     Repo.delete(survey)
   end
 
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking survey changes.
-
-  ## Examples
-
-      iex> change_survey(survey)
-      %Ecto.Changeset{source: %Survey{}}
-
-  """
   def change_survey(%Survey{} = survey) do
     Survey.changeset(survey, %{})
   end
+
+
+  # PSQ.Question
+
+
+  def list_questions(survey_id) do
+    (from q in Question, where: q.survey_id == ^survey_id)
+    |> Repo.all()
+  end
+
+  def get_question!(id, survey_id) do
+    (from q in Question, where: q.id == ^id and q.survey_id == ^survey_id)
+    |> Repo.one!()
+  end
+
+  def create_question(%{"type" => "fill"} = attrs) do
+    %Question{}
+    |> Question.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  def create_question(%{"type" => "select", "options" => options} = attrs) do
+    question =
+      %Question{}
+      |> Question.changeset(attrs)
+      |> Repo.insert!()
+
+    options
+    |> Enum.each(fn op ->
+      attr = %{
+        question_id: question.id,
+        content: op,
+        count: 0,
+      }
+      %Option{}
+      |> Option.changeset(attr)
+      |> Repo.insert()
+    end)
+
+    {:ok, question}
+  end
+
+
+  def delete_question(%Question{} = question) do
+    (from op in Option, where: op.question_id == ^question.id)
+    |> Repo.delete_all()
+    Repo.delete(question)
+  end
+
+
+
+  def list_options(question_id) do
+    (from op in Option, where: op.question_id == ^question_id)
+    |> Repo.all()
+  end
+
+  def get_option!(id), do: Repo.get!(Option, id)
+
+  def create_option(attrs \\ %{}) do
+    %Option{}
+    |> Option.changeset(attrs)
+    |> Repo.insert()
+  end
+
+
+  def delete_option(%Option{} = option) do
+    Repo.delete(option)
+  end
+
 end
