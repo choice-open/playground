@@ -6,8 +6,9 @@ defmodule Playground.AnswerController do
   #  plug :scrub_params, "answer2" when action in [:create]
 
   def index(conn, _params) do
-    result = %{php_count: get_php(), php_per: get_percent(get_php(),total_count,2), ruby_count: get_ruby(), ruby_per: get_percent(get_ruby(), total_count,2)}
     total_count = Repo.aggregate(Answer, :count, :id)
+    result = %{php_count: get_php(), ruby_count: get_ruby(), elixir_count: get_elixir, javascript_count: get_javascript, not_null_count: get_not_null, total_count: total_count}
+    render conn, "index.json", data: result
 
   end
 
@@ -24,11 +25,10 @@ defmodule Playground.AnswerController do
   end
 
   def show(conn, params) do
-    json conn, "1:1"
+    render conn, "show.json", data: Repo.get!(Answer, params[:id])
   end
 
-  def delete(conn, params) do
-    json conn, "1:1"
+  def delete(conn, _params) do
   end
 
   defp get_php() do
