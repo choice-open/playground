@@ -69,12 +69,14 @@ defmodule Playground.PSQ do
         content: op,
         count: 0,
       }
-      %Option{}
-      |> Option.changeset(attr)
-      |> Repo.insert()
+      create_option(attr)
     end)
 
     {:ok, question}
+  end
+
+  def create_question(attrs) do
+    {:error, %Question{} |> Question.changeset(attrs)}
   end
 
 
@@ -91,17 +93,15 @@ defmodule Playground.PSQ do
     |> Repo.all()
   end
 
-  def get_option!(id), do: Repo.get!(Option, id)
+  def get_option!(id, question_id) do
+    (from op in Option, where: op.id == ^id and op.question_id == ^question_id)
+    |> Repo.one!()
+  end
 
   def create_option(attrs \\ %{}) do
     %Option{}
     |> Option.changeset(attrs)
     |> Repo.insert()
-  end
-
-
-  def delete_option(%Option{} = option) do
-    Repo.delete(option)
   end
 
 end

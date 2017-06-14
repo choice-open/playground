@@ -24,7 +24,7 @@ defmodule Playground.Web.SurveyController do
   end
 
   def show(conn, %{"id" => id}) do
-    survey = PSQ.get_survey!(id) |> IO.inspect
+    survey = PSQ.get_survey!(id)
     json conn, survey_json(survey)
   end
 

@@ -8,18 +8,26 @@ defmodule Playground.Web.QuestionController do
 
 
   def create(conn, %{"type" => "fill"} = params) do
-    with {:ok, %Question{}} <- PSQ.create_question(params) do
+    with {:ok, %Question{} = question} <- PSQ.create_question(params) do
       conn
       |> put_status(:created)
-      |> json(:ok)
+      |> json(%{id: question.id})
     end
   end
 
   def create(conn, %{"type" => "select", "options" => _} = params) do
-    with {:ok, %Question{}} <- PSQ.create_question(params) do
+    with {:ok, %Question{} = question} <- PSQ.create_question(params) do
       conn
       |> put_status(:created)
-      |> json(:ok)
+      |> json(%{id: question.id})
+    end
+  end
+
+  def create(conn, params) do
+    with {:ok, %Question{} = question} <- PSQ.create_question(params) do
+      conn
+      |> put_status(:created)
+      |> json(%{id: question.id})
     end
   end
 
