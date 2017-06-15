@@ -35,7 +35,7 @@
     {
       id: 2,
       type: 'fill',
-      title: '请填写你喜欢它的原因'
+      title: '请填写你喜欢它的原因',
       required: false,
     }
   ]
