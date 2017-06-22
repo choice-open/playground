@@ -34,7 +34,7 @@ defmodule Playground.Web.Endpoint do
   plug Plug.Session,
     store: :cookie,
     key: "_playground_key",
-    signing_salt: "BcThsZ5D"
+    signing_salt: "2z38DU6/"
 
   plug Playground.Web.Router
 

@@ -8,12 +8,8 @@ defmodule Playground.Web.Router do
   scope "/api", Playground.Web do
     pipe_through :api
 
-    scope "/v1" do
-      resources "/surveys", SurveyController, except: [:new, :edit] do
-        resources "/questions", QuestionController, except: [:index, :show, :new, :edit, :update]
-      end
-      post "/surveys/:survey_id/questions/:question_id/answer", AnswerController, :create
-      get  "/surveys/:id/stats", SurveyController, :stats, as: :survey_stats
+    scope "/v1", as: :v1 do
+      get "/surveys/:id", V1.SurveyController, :show
     end
   end
 end

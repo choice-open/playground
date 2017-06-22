@@ -12,7 +12,7 @@ config :playground,
 # Configures the endpoint
 config :playground, Playground.Web.Endpoint,
   url: [host: "localhost"],
-  secret_key_base: "/NMue/f/5yvZpsOIUcjKc455j9DoPOblOX3Uk9ceiK8ZmVfxn8ozEOxtEDNzMNsl",
+  secret_key_base: "54gyTZmkFH+7I0QWZvnvI5DTI52gdOunnfTomMtFMD4sBlZ/hhGHJvQRipRzdCVw",
   render_errors: [view: Playground.Web.ErrorView, accepts: ~w(json)],
   pubsub: [name: Playground.PubSub,
            adapter: Phoenix.PubSub.PG2]
