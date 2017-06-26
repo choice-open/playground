@@ -5,7 +5,17 @@ defmodule Playground.Router do
     plug :accepts, ["json"]
   end
 
-  scope "/api", Playground do
+  scope "/", Playground do
     pipe_through :api
+
+    scope "/v1", V1, as: :v1 do
+      resources "/surveys", SurveyController, only: [:show] do
+        resources "/results", ResultController, only: [:index]
+        resources "/answers", AnswerController, only: [:create]
+        resources "/questions", QuestionController, only: [:index]
+      end
+
+      resources "/meta_questions", MetaQuestionController, only: [:index]
+    end
   end
 end
