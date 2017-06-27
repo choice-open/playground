@@ -5,6 +5,50 @@ defmodule Playground.Web.V1.SurveyView do
     demo()
   end
 
+  def stats("survey.json", %{answers: answers, id: id}) do
+    {fills, selects} = split_answers(answers)
+    fills = stats(fills, :fills)
+  end
+
+  def stats(fills, :fills) do
+    fills
+    |> List.flatten()
+    |> Enum.group_by(& &1.question_id)
+    |> Enum.map(fn {question_id, answers} ->
+      none_empty =
+        answers
+        |> Enum.reject(& is_nil(&1.content))
+        |> length()
+      total = length(answers)
+      percentage = percentage(none_empty, total)
+      %{
+        question_id: question_id,
+        none_empty: none_empty,
+        total: total,
+        percentage: percentage,
+      }
+    end)
+  end
+
+  def split_answers(answers) do
+    answers
+    |> Enum.reduce({[], []}, fn answer, {fills, selects} ->
+      {
+        [answer.fill_answer_details   | fills],
+        [answer.select_answer_details | selects]
+      }
+    end)
+  end
+
+  defp percentage(_num, 0), do: "0.00"
+  defp percentage(num, den) do
+    num
+    |> Kernel./(den)
+    |> Float.floor(4)
+    |> Kernel.*(100)
+    |> to_string()
+  end
+
   defp demo() do
     %{
       id: 1,
