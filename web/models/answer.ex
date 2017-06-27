@@ -2,21 +2,52 @@ defmodule Playground.Answer do
   use Playground.Web, :model
 
   alias Playground.Question
+  alias Playground.Repo
+  import Ecto.Query
 
   schema "answers" do
-    field :total_answer, :map, virtual: true
     field :answers, :map
-    field :position, :integer, virtual: true
     belongs_to :question, Question
     timestamps()
   end
 
   def changeset(model, params \\ %{}) do
     model
-    |> cast(params, [:total_answer, :answers, :position])
+    |> cast(params, [:answers])
+    |> validate_required([:answers])
   end
 
-  def devide_to_insert(params) do
+  def serialize_params(%{"position" => position, "answers" => answer}, survey_id) do
+
+    survey_id
+    |> get_query()
+    |> Repo.get_by!(position: position)
+    |> format_answers(answer)
+  end
+
+  defp get_query(survey_id) do
+    from q in Question,
+      join: m in assoc(q, :meta_question),
+      where: q.survey_id == ^survey_id,
+      preload: [meta_question: m]
+  end
+
+  def format_answers(question, answers) do
+    case String.to_atom(question.meta_question.type) do
+      :fill ->
+        answer = %{answers: String.trim(answers)}
+        attrs = %{question: question, answers: answer}
+        {:ok, attrs}
+      
+      :select ->
+        answer = Enum.zip(question.meta_question.options, answers)
+                 |> Enum.into(%{})
+        attrs = %{question: question, answers: answer}
+        {:ok, attrs}
+
+      _ ->
+        {:error, "error"}
+    end
   end
 
 end
