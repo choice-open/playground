@@ -5,15 +5,50 @@ defmodule Playground.Web.V1.SurveyView do
     demo()
   end
 
-  def stats("survey.json", %{answers: answers, id: id}) do
+  def render("stats.json", %{answers: answers, id: id}) do
     {fills, selects} = split_answers(answers)
-    fills = stats(fills, :fills)
+    fills = stats(fills, :fill)
+    selects = stats(selects, :select)
+
+    %{
+      id: id,
+      fill_questions: fills,
+      select_questions: selects,
+    }
   end
 
-  def stats(fills, :fills) do
+  def stats(selects, :select) do
+    selects
+    |> group_by_question_id()
+    |> Enum.map(fn {question_id, answers} ->
+      total_options = length(answers)
+      options =
+        answers
+        |> Enum.group_by(& &1.option_id)
+        |> Enum.map(fn {option_id, option_answers} ->
+          selected_count =
+            option_answers
+            |> Enum.filter(& &1.selected)
+            |> length()
+
+          percentage = percentage(selected_count, total_options)
+          %{
+            option_id: option_id,
+            selected_count: selected_count,
+            percentage: percentage,
+          }
+        end)
+      %{
+        question_id: question_id,
+        options: options,
+      }
+    end)
+  end
+
+
+  def stats(fills, :fill) do
     fills
-    |> List.flatten()
-    |> Enum.group_by(& &1.question_id)
+    |> group_by_question_id()
     |> Enum.map(fn {question_id, answers} ->
       none_empty =
         answers
@@ -28,6 +63,12 @@ defmodule Playground.Web.V1.SurveyView do
         percentage: percentage,
       }
     end)
+  end
+
+  def group_by_question_id(answers) do
+    answers
+    |> List.flatten()
+    |> Enum.group_by(& &1.question_id)
   end
 
   def split_answers(answers) do
