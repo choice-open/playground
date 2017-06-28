@@ -9,34 +9,30 @@ defmodule Playground.V1.AnswerController do
       |> Answer.serialize_params(params["survey_id"])
     end
 
-    #如果存在转换失败，报错
-    if is_nil(Keyword.get(answers, :error)) == false do
+    #如果存在转换失败，返回400
+    if check_list(answers) == :error do
       conn
       |> send_resp(400, "")
-
     else
-      aaa = answers
-      |> Keyword.get_values(:ok)
-
-      json conn, aaa
-      #      insert_result = for ans <- aaa do
-      #  Answer.changeset(%Answer{}, ans.answers)
-      #  |> Ecto.Changeset.put_assoc(:question, ans.question)
-      #  |> Repo.insert!()
-      #end
-      # 
-      #if is_nil(Keyword.get(insert_result, :error)) do
-      #  conn
-      #  |> send_resp(201, "")
-      #
-      #else 
-      #  conn
-      #  |> send_resp(400, "")
-      #end
-
+      for ans <- answers do
+        Repo.insert!(%Answer{question_id: ans.data.question_id, answers: ans.data.answers})
+      end
+        conn
+        |> send_resp(201, "")
     end
 
   end
 
+  defp check_list([]) do
+    :ok
+  end
+
+  defp check_list([head | tail]) do
+    if head.status == :ok do
+      check_list(tail)
+    else
+      :error
+    end
+  end
 
 end

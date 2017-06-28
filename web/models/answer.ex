@@ -36,17 +36,17 @@ defmodule Playground.Answer do
     case String.to_atom(question.meta_question.type) do
       :fill ->
         answer = %{answers: String.trim(answers)}
-        attrs = %{question: question, answers: answer}
-        {:ok, attrs}
+        attrs = %{question_id: question.id, answers: answer}
+        %{status: :ok, data: attrs}
       
       :select ->
         answer = Enum.zip(question.meta_question.options, answers)
                  |> Enum.into(%{})
-        attrs = %{question: question, answers: answer}
-        {:ok, attrs}
+        attrs = %{question_id: question.id, answers: answer}
+        %{status: :ok, data: attrs}
 
       _ ->
-        {:error, "error"}
+        %{status: :error, data: "error"}
     end
   end
 
