@@ -5,6 +5,8 @@ defmodule Playground.Answer do
   alias Playground.Repo
   import Ecto.Query
 
+  @derive {Poison.Encoder, except: [:__meta__]}
+
   schema "answers" do
     field :answers, :map
     belongs_to :question, Question

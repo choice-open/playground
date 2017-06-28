@@ -10,7 +10,7 @@ defmodule Playground.Router do
 
     scope "/v1", V1, as: :v1 do
       resources "/surveys", SurveyController, only: [:show] do
-        resources "/results", ResultController, only: [:index]
+        resources "/results", ResultController, only: [:index, :show]
         resources "/answers", AnswerController, only: [:create]
         resources "/questions", QuestionController, only: [:index]
       end

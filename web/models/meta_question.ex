@@ -3,6 +3,7 @@ defmodule Playground.MetaQuestion do
 
   alias Playground.Question
 
+  @derive {Poison.Encoder, except: [:__meta__]}
   schema "meta_questions" do
     field :title, :string
     field :type, :string

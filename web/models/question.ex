@@ -5,7 +5,8 @@ defmodule Playground.Question do
   alias Playground.MetaQuestion
   alias Playground.Answer
   alias Playground.Result
-  @derive {Poison.Encoder, only: [:position, :meta_quesiton_id]}
+
+  @derive {Poison.Encoder, except: [:__meta__]}
   schema "questions" do
     field :position, :integer
     has_many :answers, Answer
