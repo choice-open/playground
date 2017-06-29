@@ -1,9 +1,14 @@
 defmodule Playground.V1.SurveyController do
   use Playground.Web, :controller
 
-  alias Playground.Survey
+  @survey (
+    Application.app_dir(:playground, "priv/data/survey.json")
+    |> File.read!
+  )
 
-  def show(conn, params) do
 
+  def show(conn, _params) do
+    json conn, @survey
   end
+
 end

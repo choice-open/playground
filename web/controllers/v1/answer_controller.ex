@@ -3,6 +3,13 @@ defmodule Playground.V1.AnswerController do
 
   alias Playground.Answer
 
+  @doc """
+  ## HTTP Verb and URL
+    POST /v1/surveys/:survey_id/answers
+
+  ## Params
+  [{"position": x, answers: "String"}, {"position": x, answers: [boolean list], ... ]
+  """
   def create(conn, params) do
     answers = for a <- params["_json"] do
       a
