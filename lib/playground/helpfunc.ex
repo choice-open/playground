@@ -46,12 +46,16 @@ defmodule Playground.HelpFunc do
       |> Repo.one
   end
 
-  def get_result(survey_id) do
-    (from r in Result,
+  def get_result_query(survey_id) do
+    from r in Result,
       join: q in assoc(r, :question),
       where: q.survey_id == ^survey_id,
-      preload: [question: q])
-      |> Repo.all
+      preload: [question: q]
+  end
+  
+  def get_result(survey_id) do
+    get_result_query(survey_id)
+    |> Repo.all
   end
 
   def delete_result(survey_id, position) do
