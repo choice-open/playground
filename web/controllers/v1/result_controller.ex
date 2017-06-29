@@ -1,12 +1,7 @@
 defmodule Playground.V1.ResultController do
   use Playground.Web, :controller
 
-  alias Playground.Answer
-  alias Playground.Result
-  alias Playground.Question
-  alias Playground.Repo
   alias Playground.HelpFunc
-  import Ecto.Query
 
   @doc """
   ## HTTP Verb and URL
