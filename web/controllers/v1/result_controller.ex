@@ -9,40 +9,25 @@ defmodule Playground.V1.ResultController do
   import Ecto.Query
 
   def index(conn, params) do
-    aaa = HelpFunc.start(params["survey_id"])
-    |> set_result()
-    #json conn, HelpFunc.get_result(params["survey_id"])
-    json conn, aaa
-    #render conn, "index.json", data: get_result(params["survey_id"])
+    calculate(params["survey_id"])
+    results = HelpFunc.get_result(params["survey_id"])
+    render conn, "index.json", data: results
   end
   
   def show(conn, params) do
-    HelpFunc.start(params["survey_id"], params["id"])
-    |> set_result()
-
-    json conn, HelpFunc.get_result(params["survey_id"], params["id"])
-    #    render conn, "show.json", data: get_result(params["survey_id"], params["id"])
+    calculate(params["survey_id"], params["id"])
+    results = HelpFunc.get_result(params["survey_id"], params["id"])
+    render conn, "show.json", data: results
   end
 
-  defp set_result(changes) do
-    for change <- changes do
-      case Repo.get_by(Result, question_id: change.question_id) do
-        nil -> change
-          
-        result -> 
-          new_result = change.result
-                        |>cal_new_result(result.result)
-          %{question_id: change.question_id, result: new_result, total: result.total + change.total} 
-      end
-      # |> Result.changeset(changes)
-      #|> Repo.insert_or_update!
-    end
+  defp calculate(survey) do
+    HelpFunc.delete_result(survey)
+    HelpFunc.start(survey)
   end
 
-  defp cal_new_result(change, results) do
-    results
-    |> Enum.map(fn {k, v} ->
-      {k, v + Map.get(change, k)} end)
+  defp calculate(survey, position) do
+    HelpFunc.delete_result(survey, position)
+    HelpFunc.start(survey, position)
   end
 
 end

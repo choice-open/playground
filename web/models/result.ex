@@ -16,6 +16,7 @@ defmodule Playground.Result do
     model
     |> cast(params, [:result, :total])
     |> validate_required([:result, :total])
+    |> assoc_constraint(:question)
   end
 
 end
