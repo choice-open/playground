@@ -21,12 +21,19 @@ defmodule Playground.V1.AnswerController do
       conn
       |> send_resp(400, "")
     else
-      for ans <- answers do
-        Repo.insert!(%Answer{question_id: ans.data.question_id, answers: ans.data.answers})
-        IO.puts ans.data.question_id
+      insert_status = Repo.transaction(fn ->
+        for ans <- answers do
+          Repo.insert!(%Answer{question_id: ans.data.question_id, answers: ans.data.answers})
+        end
+      end)
+      case insert_status do
+        {:ok, _} ->
+          conn
+        |> send_resp(201,"")
+        {_, _} ->
+          conn
+          |> send_resp(400, "")
       end
-        conn
-        |> send_resp(201, "")
     end
 
   end
