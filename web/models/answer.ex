@@ -42,9 +42,7 @@ defmodule Playground.Answer do
         %{status: :ok, data: attrs}
       
       :select ->
-        answer = Enum.zip(question.meta_question.options, answers)
-                 |> Enum.into(%{})
-        attrs = %{question_id: question.id, answers: answer}
+        attrs = %{question_id: question.id, answers: answers}
         %{status: :ok, data: attrs}
 
       _ ->

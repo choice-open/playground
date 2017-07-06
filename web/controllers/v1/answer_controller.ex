@@ -23,6 +23,7 @@ defmodule Playground.V1.AnswerController do
     else
       for ans <- answers do
         Repo.insert!(%Answer{question_id: ans.data.question_id, answers: ans.data.answers})
+        IO.puts ans.data.question_id
       end
         conn
         |> send_resp(201, "")
