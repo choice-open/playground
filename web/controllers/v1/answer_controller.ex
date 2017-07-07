@@ -32,10 +32,14 @@ defmodule Playground.V1.AnswerController do
       case insert_status do
         {:ok, _} ->
           #Calculate results
-          HelpFunc.start(params["survey_id"])
-
-          conn
-        |> send_resp(201,"")
+          case HelpFunc.start(params["survey_id"]) do
+            {:ok, _} ->
+              conn
+              |> send_resp(201,"")
+            {_, _} ->
+              conn
+              |> send_resp(400, "")
+          end
         {_, _} ->
           conn
           |> send_resp(400, "")
