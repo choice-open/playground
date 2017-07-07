@@ -1,31 +1,12 @@
 defmodule Playground.HelpFunc do
-  alias Playground.Repo
-  alias Playground.Answer
-  alias Playground.Result
+  alias Playground.{Repo, Answer, Result}
   import Ecto.Query
 
   def start(survey_id) do
-    survey_id
-    |> get_answers
+    answers = get_answers(survey_id)
+    answers
     |> serialize_result
-    |> set_result
-  end
-
-  def start(survey_id, position) do
-    survey_id
-    |> get_answers(position)
-    |> serialize_result
-    |> set_result
-  end
-
-  defp get_answers(survey_id, position) do
-    (from a in Answer,
-      join: q in assoc(a, :question),
-      join: m in assoc(q, :meta_question),
-      where: q.survey_id == ^survey_id,
-      where: q.position == ^position,
-      preload: [question: {q, meta_question: m}])
-      |> Repo.all()
+    |> set_result(answers)
   end
 
   defp get_answers(survey_id) do
@@ -33,6 +14,7 @@ defmodule Playground.HelpFunc do
       join: q in assoc(a, :question),
       join: m in assoc(q, :meta_question),
       where: q.survey_id == ^survey_id,
+      where: a.counted == false,
       preload: [question: {q, meta_question: m}])
       |> Repo.all()
   end
@@ -53,7 +35,7 @@ defmodule Playground.HelpFunc do
       preload: [question: q]
   end
   
-  def get_result(survey_id) do
+  def get_results(survey_id) do
     get_result_query(survey_id)
     |> Repo.all
   end
@@ -72,20 +54,43 @@ defmodule Playground.HelpFunc do
   end
 
 
-  defp set_result(changes) do
-    for change <- changes do
-      case Repo.get_by(Result, question_id: change.question_id) do
-       nil -> 
-         struct(%Result{}, change)
-         |> Result.changeset
-          
-       res -> 
+  defp set_result(changes, answers) do
+    Repo.transaction(fn ->
+        for change <- changes, ans <- answers do
+          case Repo.get_by(Result, question_id: change.question_id) do
+        nil -> 
+          struct(%Result{}, change)
+          |> Result.changeset
+          |> Repo.insert
+          set_counted(ans)
+            
+        res -> 
           new_result = change.result
-                       |> Map.merge(res.result, fn _k, v1, v2 -> v1 + v2 end)
-          #          struct(%Result{}, %{question_id: change.question_id, result: new_result, total: res.total + change.total}) 
-          Result.changeset(res, %{result: new_result, total: res.total + change.total})
+                      |> Map.merge(res.result, fn _k, v1, v2 -> v1 + v2 end)
+          update_result = Result.changeset(res, %{result: new_result, total: res.total + change.total})
+          #好像是乐观锁根据changeset创建时间决定，所以这里我重建了changeset，不知道对不对
+            try do
+              Repo.update(update_result)
+              set_counted(ans)
+            rescue
+              Ecto.StaleEntryError -> 
+                Repo.update(Result.changeset(res, %{result: new_result, total: res.total + change.total}))
+                set_counted(ans)
+            end
+        end
       end
-      |> Repo.insert_or_update!
+    end)
+    #|> Keyword.keys
+    #|> Enum.member?(:error)
+  end
+
+  defp set_counted(ans) do
+    answer = Ecto.Changeset.change ans, counted: true
+    try do
+      Repo.update(answer)
+    rescue
+      Ecto.StaleEntryError ->
+        Repo.update(Ecto.Changeset.change ans, counted: true)
     end
   end
 

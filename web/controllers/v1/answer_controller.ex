@@ -1,8 +1,9 @@
 defmodule Playground.V1.AnswerController do
   use Playground.Web, :controller
 
-  alias Playground.Answer
+  alias Playground.{Answer, HelpFunc}
 
+  @results []
   @doc """
   ## HTTP Verb and URL
     POST /v1/surveys/:survey_id/answers
@@ -21,13 +22,18 @@ defmodule Playground.V1.AnswerController do
       conn
       |> send_resp(400, "")
     else
+      results = Enum.reduce(answers, [], fn(x, acc) -> acc ++ [%{question_id: x.data.question_id, answers: x.data.answers}] end)
+
       insert_status = Repo.transaction(fn ->
-        for ans <- answers do
-          Repo.insert!(%Answer{question_id: ans.data.question_id, answers: ans.data.answers})
+        for res <- results do
+          Repo.insert!(struct(Answer, res))
         end
       end)
       case insert_status do
         {:ok, _} ->
+          #Calculate results
+          HelpFunc.start(params["survey_id"])
+
           conn
         |> send_resp(201,"")
         {_, _} ->

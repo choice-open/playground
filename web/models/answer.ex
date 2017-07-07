@@ -9,18 +9,20 @@ defmodule Playground.Answer do
 
   schema "answers" do
     field :answers, :map
+    field :counted, :boolean, default: false
+    field :lock_version, :integer, default: 1
     belongs_to :question, Question
     timestamps()
   end
 
   def changeset(model, params \\ %{}) do
     model
-    |> cast(params, [:answers])
+    |> cast(params, [:answers, :counted])
     |> validate_required([:answers])
+    |> optimistic_lock(:lock_version)
   end
 
   def serialize_params(%{"position" => position, "answers" => answer}, survey_id) do
-
     survey_id
     |> get_query()
     |> Repo.get_by!(position: position)
