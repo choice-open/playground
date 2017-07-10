@@ -56,32 +56,44 @@ defmodule Playground.HelpFunc do
 
   defp set_result(changes, answers) do
     Repo.transaction(fn ->
-        for change <- changes, ans <- answers do
-          case Repo.get_by(Result, question_id: change.question_id) do
-        nil -> 
+      for change <- changes, ans <- answers do
+        set_single_result(change, ans)
+      end
+    end)
+  end
+
+  defp set_single_result(change, answer) do
+      case Repo.get_by(Result, question_id: change.question_id) do
+        nil ->
           struct(%Result{}, change)
           |> Result.changeset
           |> Repo.insert
-          set_counted(ans)
-            
-        res -> 
-          new_result = change.result
-                      |> Map.merge(res.result, fn _k, v1, v2 -> v1 + v2 end)
-          update_result = Result.changeset(res, %{result: new_result, total: res.total + change.total})
-          #好像是乐观锁根据changeset创建时间决定，所以这里我重建了changeset，不知道对不对
-            try do
-              Repo.update(update_result)
-              set_counted(ans)
-            rescue
-              Ecto.StaleEntryError -> 
-                Repo.update(Result.changeset(res, %{result: new_result, total: res.total + change.total}))
-                set_counted(ans)
-            end
-        end
+
+        res ->
+          update_single_result(change, res, answer)
       end
-    end)
-    #|> Keyword.keys
-    #|> Enum.member?(:error)
+  end
+
+  defp update_single_result(change, result, answer, times \\ 0) when times < 2 do
+      new_result = change.result
+                |> Map.merge(result.result, fn _k, v1, v2 -> v1 + v2 end)
+      try do
+        result
+        |> Result.changeset(%{result: new_result, total: result.total + change.total})
+        |> Repo.update
+      rescue
+        Ecto.StaleEntryError ->
+          update_single_result(change, result, times + 1)
+      else
+        {:ok, _} ->
+          set_counted(answer)
+        {_, _} ->
+          {:error, "fail"}
+      end
+  end
+
+  defp update_single_result(_change, _result, _answer, _times) do
+    {:error, "fail"}
   end
 
   defp set_counted(ans) do
@@ -90,7 +102,9 @@ defmodule Playground.HelpFunc do
       Repo.update(answer)
     rescue
       Ecto.StaleEntryError ->
-        Repo.update(Ecto.Changeset.change ans, counted: true)
+        Repo.get(Answer, ans.id)
+        |> Ecto.Changeset.change(counted: true)
+        |> Repo.update
     end
   end
 
