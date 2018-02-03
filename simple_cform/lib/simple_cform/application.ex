@@ -11,7 +11,7 @@ defmodule SimpleCform.Application do
       # Start the Ecto repository
       supervisor(SimpleCform.Repo, []),
       # Start the endpoint when the application starts
-      supervisor(SimpleCformWeb.Endpoint, []),
+      supervisor(SimpleCformWeb.Endpoint, [])
       # Start your own worker by calling: SimpleCform.Worker.start_link(arg1, arg2, arg3)
       # worker(SimpleCform.Worker, [arg1, arg2, arg3]),
     ]
