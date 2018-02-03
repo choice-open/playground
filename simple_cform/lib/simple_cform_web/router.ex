@@ -21,7 +21,9 @@ defmodule SimpleCformWeb.Router do
   end
 
   # Other scopes may use custom stacks.
-  # scope "/api", SimpleCformWeb do
-  #   pipe_through :api
-  # end
+  scope "/v1", SimpleCformWeb do
+    pipe_through(:api)
+
+    resources("/surveys", SurveyController, only: [:show])
+  end
 end
