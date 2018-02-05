@@ -184,6 +184,16 @@ defmodule SimpleCform.SurveysTest do
       assert select_answer.selected_options == []
     end
 
+    test "create_select_answer/1 can accept multiple selected_options" do
+      multi_selects_attrs = %{question_id: 42, selected_options: [1, 2]}
+
+      assert {:ok, %SelectAnswer{} = select_answer} =
+               Surveys.create_select_answer(multi_selects_attrs)
+
+      assert select_answer.question_id == 42
+      assert select_answer.selected_options == [1, 2]
+    end
+
     test "create_select_answer/1 with invalid data returns error changeset" do
       assert {:error, %Ecto.Changeset{}} = Surveys.create_select_answer(@invalid_attrs)
     end
