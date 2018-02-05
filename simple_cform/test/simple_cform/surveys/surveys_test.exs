@@ -7,9 +7,11 @@ defmodule SimpleCform.SurveysTest do
     alias SimpleCform.Surveys.SelectAnswer
     alias SimpleCform.Surveys.FillAnswer
 
-    def survey_fixture(questions: questions) do
+    def survey_fixture(questions: questions), do: survey_fixture(id: 1, questions: questions)
+
+    def survey_fixture(id: id, questions: questions) do
       %{
-        id: 1,
+        id: id,
         title: "Fake Survey Title",
         questions: questions
       }
@@ -37,6 +39,14 @@ defmodule SimpleCform.SurveysTest do
         title: "Fake Fill Question Title",
         required: false
       }
+    end
+
+    test "sets survey_id in response correctly" do
+      survey = survey_fixture(id: 1, questions: [])
+
+      {:ok, %{survey_id: survey_id, answers: []}} = Surveys.create_response(survey, [])
+
+      assert survey_id == 1
     end
 
     test "creates a select_answer for select_quostion" do

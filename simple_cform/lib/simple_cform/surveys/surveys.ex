@@ -19,7 +19,7 @@ defmodule SimpleCform.Surveys do
         answer
       end
 
-    {:ok, %{answers: answers}}
+    {:ok, %{survey_id: survey.id, answers: answers}}
   end
 
   defp get_question(id, survey) do
