@@ -9,6 +9,20 @@ defmodule SimpleCform.Surveys do
   alias SimpleCform.Surveys.SelectAnswer
 
   @doc """
+  Creates an answer for a given question.
+  The answer's type is based on question's type.
+  - SelectQuestion (%{type: "select"}) -> SelectAnswer
+  - FillQuestion (%{type: "fill"}) -> FillAnswer
+  """
+  def create_answer(%{type: "select"}, attrs) do
+    create_select_answer(attrs)
+  end
+
+  def create_answer(%{type: "fill"}, attrs) do
+    create_fill_answer(attrs)
+  end
+
+  @doc """
   Returns the list of select_answers.
 
   ## Examples

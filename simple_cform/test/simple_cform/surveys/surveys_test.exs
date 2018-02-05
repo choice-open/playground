@@ -3,6 +3,31 @@ defmodule SimpleCform.SurveysTest do
 
   alias SimpleCform.Surveys
 
+  describe "create_answer/2" do
+    alias SimpleCform.Surveys.SelectAnswer
+    alias SimpleCform.Surveys.FillAnswer
+
+    test "with a select type question creates a select_answer" do
+      select_question = %{id: 1, type: "select"}
+
+      {:ok, %SelectAnswer{} = select_answer} =
+        Surveys.create_answer(select_question, %{question_id: 1, selected_options: [1]})
+
+      assert select_answer.question_id == 1
+      assert select_answer.selected_options == [1]
+    end
+
+    test "with a fill type question creates a fill_answer" do
+      fill_question = %{id: 1, type: "fill"}
+
+      {:ok, %FillAnswer{} = fill_answer} =
+        Surveys.create_answer(fill_question, %{question_id: 1, content: "Test Content"})
+
+      assert fill_answer.question_id == 1
+      assert fill_answer.content == "Test Content"
+    end
+  end
+
   describe "select_answers" do
     alias SimpleCform.Surveys.SelectAnswer
 
