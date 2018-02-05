@@ -12,7 +12,7 @@ defmodule SimpleCform.Surveys do
   It's an in-memory repo,
   which always returns the same result.
   """
-  def get_survey!(_id) do
+  def get_survey!(1) do
     %{
       id: 1,
       title: "程序员信仰测试",
@@ -49,6 +49,10 @@ defmodule SimpleCform.Surveys do
         }
       ]
     }
+  end
+
+  def get_survey!(id) do
+    %{id: id, questions: []}
   end
 
   @doc """

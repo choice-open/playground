@@ -4,7 +4,7 @@ defmodule SimpleCform.SurveysTest do
   alias SimpleCform.Surveys
 
   describe "get_survey!/1" do
-    test "always returns expected results" do
+    test "returns expected results for id = 1" do
       expected_survey = %{
         id: 1,
         title: "程序员信仰测试",
@@ -43,6 +43,11 @@ defmodule SimpleCform.SurveysTest do
       }
 
       assert Surveys.get_survey!(1) == expected_survey
+    end
+
+    test "returns empty survey for id != 1" do
+      expected_survey = %{id: 2, questions: []}
+      assert Surveys.get_survey!(2) == expected_survey
     end
   end
 
