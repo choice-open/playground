@@ -56,7 +56,9 @@ defmodule SimpleCform.Surveys do
   """
   def create_response(survey, answers_attrs) do
     answers =
-      for %{question_id: question_id} = attr <- answers_attrs,
+      for attr <- answers_attrs,
+          # HACK: support both types of question_id from controller and test
+          question_id = attr["question_id"] || attr[:question_id],
           question = get_question(question_id, survey),
           {:ok, answer} = create_answer(question, attr) do
         answer
