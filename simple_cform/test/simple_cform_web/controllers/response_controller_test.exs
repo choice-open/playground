@@ -20,12 +20,13 @@ defmodule SimpleCformWeb.ResponseControllerTest do
         )
 
       assert json_response(conn, :created) == %{
-               # "response" =>
-               "survey_id" => 1,
-               "answers" => [
-                 %{"question_id" => 1, "selected_options" => [1]},
-                 %{"question_id" => 2, "content" => "Test Content"}
-               ]
+               "response" => %{
+                 "survey_id" => 1,
+                 "answers" => [
+                   %{"question_id" => 1, "selected_options" => [1]},
+                   %{"question_id" => 2, "content" => "Test Content"}
+                 ]
+               }
              }
     end
   end

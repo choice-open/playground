@@ -6,11 +6,13 @@ defmodule SimpleCformWeb.ResponseView do
 
   def render("create.json", %{response: response}) do
     %{
-      survey_id: response.survey_id,
-      answers:
-        for answer <- response.answers do
-          answer |> to_json()
-        end
+      response: %{
+        survey_id: response.survey_id,
+        answers:
+          for answer <- response.answers do
+            answer |> to_json()
+          end
+      }
     }
   end
 
