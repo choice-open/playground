@@ -9,6 +9,25 @@ defmodule SimpleCform.Surveys do
   alias SimpleCform.Surveys.SelectAnswer
 
   @doc """
+  Creates a response for a existing survey.
+  """
+  def create_response(survey, answers_attrs) do
+    answers =
+      for %{question_id: question_id} = attr <- answers_attrs,
+          question = get_question(question_id, survey),
+          {:ok, answer} = create_answer(question, attr) do
+        answer
+      end
+
+    {:ok, %{answers: answers}}
+  end
+
+  defp get_question(id, survey) do
+    survey.questions
+    |> Enum.find(fn question -> question.id == id end)
+  end
+
+  @doc """
   Creates an answer for a given question.
   The answer's type is based on question's type.
   - SelectQuestion (%{type: "select"}) -> SelectAnswer

@@ -3,6 +3,77 @@ defmodule SimpleCform.SurveysTest do
 
   alias SimpleCform.Surveys
 
+  describe "create_response/2" do
+    alias SimpleCform.Surveys.SelectAnswer
+    alias SimpleCform.Surveys.FillAnswer
+
+    def survey_fixture(questions: questions) do
+      %{
+        id: 1,
+        title: "Fake Survey Title",
+        questions: questions
+      }
+    end
+
+    def select_question_fixture(id: id) do
+      %{
+        id: id,
+        type: "select",
+        title: "Fake Select Question Title",
+        required: true,
+        options: [
+          %{
+            id: 1,
+            content: "Fake Content"
+          }
+        ]
+      }
+    end
+
+    def fill_question_fixture(id: id) do
+      %{
+        id: id,
+        type: "fill",
+        title: "Fake Fill Question Title",
+        required: false
+      }
+    end
+
+    test "creates a select_answer for select_quostion" do
+      select_question = select_question_fixture(id: 1)
+      survey = survey_fixture(questions: [select_question])
+
+      {:ok, %{answers: [%SelectAnswer{} = select_answer]}} =
+        Surveys.create_response(survey, [%{question_id: 1, selected_options: [1]}])
+
+      assert select_answer.question_id == 1
+      assert select_answer.selected_options == [1]
+    end
+
+    test "creates a fill_answer for fill_question" do
+      fill_question = fill_question_fixture(id: 1)
+      survey = survey_fixture(questions: [fill_question])
+
+      {:ok, %{answers: [%FillAnswer{} = fill_answer]}} =
+        Surveys.create_response(survey, [%{question_id: 1, content: "Test Content"}])
+
+      assert fill_answer.question_id == 1
+      assert fill_answer.content == "Test Content"
+    end
+
+    test "creates a select_answer and fill_answer at the same time" do
+      select_question = select_question_fixture(id: 1)
+      fill_question = fill_question_fixture(id: 2)
+      survey = survey_fixture(questions: [select_question, fill_question])
+
+      {:ok, %{answers: [%SelectAnswer{}, %FillAnswer{}]}} =
+        Surveys.create_response(survey, [
+          %{question_id: 1, selected_options: [1]},
+          %{question_id: 2, content: "Test Content"}
+        ])
+    end
+  end
+
   describe "create_answer/2" do
     alias SimpleCform.Surveys.SelectAnswer
     alias SimpleCform.Surveys.FillAnswer
