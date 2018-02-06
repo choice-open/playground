@@ -51,47 +51,9 @@ defmodule SimpleCform.SurveysTest do
     end
   end
 
-  def select_question_fixture(id: id), do: select_question_fixture(id: id, required: true)
-
-  def select_question_fixture(id: id, required: required) do
-    %{
-      id: id,
-      type: "select",
-      title: "Fake Select Question Title",
-      required: required,
-      options: [
-        %{
-          id: 1,
-          content: "Fake Content"
-        }
-      ]
-    }
-  end
-
-  def fill_question_fixture(id: id), do: fill_question_fixture(id: id, required: true)
-
-  def fill_question_fixture(id: id, required: required) do
-    %{
-      id: id,
-      type: "fill",
-      title: "Fake Fill Question Title",
-      required: required
-    }
-  end
-
   describe "create_response/2" do
     alias SimpleCform.Surveys.SelectAnswer
     alias SimpleCform.Surveys.FillAnswer
-
-    def survey_fixture(questions: questions), do: survey_fixture(id: 1, questions: questions)
-
-    def survey_fixture(id: id, questions: questions) do
-      %{
-        id: id,
-        title: "Fake Survey Title",
-        questions: questions
-      }
-    end
 
     test "creates a select_answer and fill_answer at the same time" do
       {:ok, %{answers: [%SelectAnswer{}, %FillAnswer{}]}} =
