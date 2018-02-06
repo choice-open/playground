@@ -94,15 +94,14 @@ defmodule SimpleCform.SurveysTest do
     end
 
     test "creates a select_answer and fill_answer at the same time" do
-      select_question = select_question_fixture(id: 1)
-      fill_question = fill_question_fixture(id: 2)
-      survey = survey_fixture(questions: [select_question, fill_question])
-
       {:ok, %{answers: [%SelectAnswer{}, %FillAnswer{}]}} =
-        Surveys.create_response(survey, [
-          %{question_id: 1, selected_options: [1]},
-          %{question_id: 2, content: "Test Content"}
-        ])
+        Surveys.create_response(%{
+          survey_id: 1,
+          answers: [
+            %{question_id: 1, selected_options: [1]},
+            %{question_id: 2, content: "Test Content"}
+          ]
+        })
     end
   end
 end

@@ -58,10 +58,10 @@ defmodule SimpleCform.Surveys do
   @doc """
   Creates a response for a existing survey.
   """
-  def create_response(survey, answers_attrs) do
+  def create_response(params) do
     changeset =
       %Response{}
-      |> Response.changeset(%{survey_id: survey.id, answers: answers_attrs})
+      |> Response.changeset(params)
 
     if changeset.valid? do
       changeset
@@ -74,7 +74,7 @@ defmodule SimpleCform.Surveys do
             |> Map.values()
             |> Enum.sort_by(fn answer -> answer.question_id end)
 
-          {:ok, %{survey_id: survey.id, answers: answers}}
+          {:ok, %{survey_id: params["survey_id"], answers: answers}}
 
         {:error, failed_question_id, failed_answer, _} ->
           {:error, failed_question_id, failed_answer}
