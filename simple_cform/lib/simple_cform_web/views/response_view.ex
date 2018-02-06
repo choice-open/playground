@@ -16,6 +16,18 @@ defmodule SimpleCformWeb.ResponseView do
     }
   end
 
+  def render("error.json", %{failed_question_id: failed_question_id, failed_answer: failed_answer}) do
+    %{
+      error: %{
+        failed_question_id: failed_question_id,
+        reason:
+          for {field, error} <- failed_answer.errors, into: %{} do
+            {field, translate_error(error)}
+          end
+      }
+    }
+  end
+
   defp to_json(%SelectAnswer{} = select_answer) do
     %{
       question_id: select_answer.question_id,
