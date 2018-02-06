@@ -51,6 +51,30 @@ defmodule SimpleCform.SurveysTest do
     end
   end
 
+  def select_question_fixture(id: id) do
+    %{
+      id: id,
+      type: "select",
+      title: "Fake Select Question Title",
+      required: true,
+      options: [
+        %{
+          id: 1,
+          content: "Fake Content"
+        }
+      ]
+    }
+  end
+
+  def fill_question_fixture(id: id) do
+    %{
+      id: id,
+      type: "fill",
+      title: "Fake Fill Question Title",
+      required: false
+    }
+  end
+
   describe "create_response/2" do
     alias SimpleCform.Surveys.SelectAnswer
     alias SimpleCform.Surveys.FillAnswer
@@ -62,30 +86,6 @@ defmodule SimpleCform.SurveysTest do
         id: id,
         title: "Fake Survey Title",
         questions: questions
-      }
-    end
-
-    def select_question_fixture(id: id) do
-      %{
-        id: id,
-        type: "select",
-        title: "Fake Select Question Title",
-        required: true,
-        options: [
-          %{
-            id: 1,
-            content: "Fake Content"
-          }
-        ]
-      }
-    end
-
-    def fill_question_fixture(id: id) do
-      %{
-        id: id,
-        type: "fill",
-        title: "Fake Fill Question Title",
-        required: false
       }
     end
 
@@ -137,7 +137,7 @@ defmodule SimpleCform.SurveysTest do
     alias SimpleCform.Surveys.FillAnswer
 
     test "with a select type question creates a select_answer" do
-      select_question = %{id: 1, type: "select"}
+      select_question = select_question_fixture(id: 1)
 
       {:ok, %SelectAnswer{} = select_answer} =
         Surveys.create_answer(select_question, %{question_id: 1, selected_options: [1]})
@@ -147,7 +147,7 @@ defmodule SimpleCform.SurveysTest do
     end
 
     test "with a fill type question creates a fill_answer" do
-      fill_question = %{id: 1, type: "fill"}
+      fill_question = fill_question_fixture(id: 1)
 
       {:ok, %FillAnswer{} = fill_answer} =
         Surveys.create_answer(fill_question, %{question_id: 1, content: "Test Content"})
