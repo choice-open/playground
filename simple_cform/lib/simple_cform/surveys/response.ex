@@ -18,8 +18,7 @@ defmodule SimpleCform.Surveys.Response do
          {_, answers_attrs} <- changeset |> fetch_field(:answers) do
       answers_attrs
       |> Enum.reduce(Multi.new(), fn attr, multi ->
-        # HACK: support both types of question_id from controller and test
-        question_id = attr["question_id"] || attr[:question_id]
+        question_id = attr["question_id"]
         question = get_question(question_id, survey)
         create_answer(multi, question, attr)
       end)

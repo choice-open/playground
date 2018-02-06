@@ -58,10 +58,10 @@ defmodule SimpleCform.SurveysTest do
     test "creates a select_answer and fill_answer at the same time" do
       {:ok, %{answers: [%SelectAnswer{}, %FillAnswer{}]}} =
         Surveys.create_response(%{
-          survey_id: 1,
-          answers: [
-            %{question_id: 1, selected_options: [1]},
-            %{question_id: 2, content: "Test Content"}
+          "survey_id" => 1,
+          "answers" => [
+            %{"question_id" => 1, "selected_options" => [1]},
+            %{"question_id" => 2, "content" => "Test Content"}
           ]
         })
     end

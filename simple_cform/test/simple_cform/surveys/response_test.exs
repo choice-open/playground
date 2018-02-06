@@ -8,10 +8,10 @@ defmodule SimpleCform.Surveys.ResponseTest do
       multi =
         %Response{}
         |> Response.changeset(%{
-          survey_id: 1,
-          answers: [
-            %{question_id: 1, selected_options: [1]},
-            %{question_id: 2, content: "Test Content"}
+          "survey_id" => 1,
+          "answers" => [
+            %{"question_id" => 1, "selected_options" => [1]},
+            %{"question_id" => 2, "content" => "Test Content"}
           ]
         })
         |> Response.to_multi()
