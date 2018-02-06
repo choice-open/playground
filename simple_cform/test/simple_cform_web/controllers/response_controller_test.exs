@@ -3,7 +3,7 @@ defmodule SimpleCformWeb.ResponseControllerTest do
 
   describe "POST /v1/responses" do
     test "returns 201 :created", %{conn: conn} do
-      conn = post(conn, "/v1/responses", survey_id: 1, answers: [])
+      conn = post(conn, "/v1/responses", survey_id: 2, answers: [])
       assert conn.status == 201
     end
 
