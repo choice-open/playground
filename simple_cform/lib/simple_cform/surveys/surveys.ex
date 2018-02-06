@@ -4,8 +4,6 @@ defmodule SimpleCform.Surveys do
   """
 
   import Ecto.Query, warn: false
-  import Ecto.Changeset
-  alias Ecto.Multi
   alias SimpleCform.Repo
 
   alias SimpleCform.Surveys.Response
@@ -75,7 +73,6 @@ defmodule SimpleCform.Surveys do
         {:ok, changes} ->
           answers =
             changes
-            |> Map.delete(:validate_all_questions_were_answered)
             |> Map.values()
             |> Enum.sort_by(fn answer -> answer.question_id end)
 
@@ -87,83 +84,6 @@ defmodule SimpleCform.Surveys do
     else
       {:error, changeset.errors}
     end
-  end
-
-  def build_response_multi(survey, answers_attrs) do
-    answers_attrs
-    |> Enum.reduce(Multi.new(), fn attr, multi ->
-      # HACK: support both types of question_id from controller and test
-      question_id = attr["question_id"] || attr[:question_id]
-      question = get_question(question_id, survey)
-      create_answer(multi, question, attr)
-    end)
-    |> Multi.run(:validate_all_questions_were_answered, fn _ ->
-      # HACK: this should be a validation step in Response Changeset, but we don't
-      # have Response module yet, so I put it here for some convenience (it's
-      # easier to raise error here)
-      validate_all_questions_have_answer(survey, answers_attrs)
-    end)
-  end
-
-  defp validate_all_questions_have_answer(survey, answers_attrs) do
-    asked_questions_ids = survey.questions |> Enum.map(& &1.id) |> Enum.sort()
-
-    answered_questions_ids =
-      answers_attrs |> Enum.map(&(&1["question_id"] || &1[:question_id])) |> Enum.sort()
-
-    unanswered_questions_ids =
-      asked_questions_ids
-      |> Enum.filter(&(&1 not in answered_questions_ids))
-
-    if Enum.empty?(unanswered_questions_ids) do
-      {:ok, nil}
-    else
-      {:error, unanswered_questions_ids}
-    end
-  end
-
-  defp get_question(id, survey) do
-    survey.questions
-    |> Enum.find(fn question -> question.id == id end)
-  end
-
-  @doc false
-  defp create_answer(multi, %{id: question_id, type: "select", required: true}, attrs) do
-    changeset =
-      %SelectAnswer{}
-      |> SelectAnswer.changeset(attrs)
-      |> validate_length(:selected_options, min: 1)
-
-    multi
-    |> Multi.insert(question_id, changeset)
-  end
-
-  defp create_answer(multi, %{id: question_id, type: "select", required: false}, attrs) do
-    changeset =
-      %SelectAnswer{}
-      |> SelectAnswer.changeset(attrs)
-
-    multi
-    |> Multi.insert(question_id, changeset)
-  end
-
-  defp create_answer(multi, %{id: question_id, type: "fill", required: true}, attrs) do
-    changeset =
-      %FillAnswer{}
-      |> FillAnswer.changeset(attrs)
-      |> validate_required(:content)
-
-    multi
-    |> Multi.insert(question_id, changeset)
-  end
-
-  defp create_answer(multi, %{id: question_id, type: "fill", required: false}, attrs) do
-    changeset =
-      %FillAnswer{}
-      |> FillAnswer.changeset(attrs)
-
-    multi
-    |> Multi.insert(question_id, changeset)
   end
 
   @doc """
