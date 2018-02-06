@@ -51,12 +51,14 @@ defmodule SimpleCform.SurveysTest do
     end
   end
 
-  def select_question_fixture(id: id) do
+  def select_question_fixture(id: id), do: select_question_fixture(id: id, required: true)
+
+  def select_question_fixture(id: id, required: required) do
     %{
       id: id,
       type: "select",
       title: "Fake Select Question Title",
-      required: true,
+      required: required,
       options: [
         %{
           id: 1,
@@ -144,6 +146,22 @@ defmodule SimpleCform.SurveysTest do
 
       assert select_answer.question_id == 1
       assert select_answer.selected_options == [1]
+    end
+
+    test "with a required select question validates selected_options' length" do
+      select_question = select_question_fixture(id: 1, required: true)
+
+      assert {:error, changeset} =
+               Surveys.create_answer(select_question, %{question_id: 1, selected_options: []})
+
+      assert "should have at least 1 item(s)" in errors_on(changeset).selected_options
+    end
+
+    test "with a non-required select question does not validates selected_options" do
+      select_question = select_question_fixture(id: 1, required: false)
+
+      assert {:ok, _answer} =
+               Surveys.create_answer(select_question, %{question_id: 1, selected_options: []})
     end
 
     test "with a fill type question creates a fill_answer" do

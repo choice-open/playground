@@ -4,6 +4,7 @@ defmodule SimpleCform.Surveys do
   """
 
   import Ecto.Query, warn: false
+  import Ecto.Changeset
   alias SimpleCform.Repo
 
   alias SimpleCform.Surveys.SelectAnswer
@@ -82,8 +83,17 @@ defmodule SimpleCform.Surveys do
   - SelectQuestion (%{type: "select"}) -> SelectAnswer
   - FillQuestion (%{type: "fill"}) -> FillAnswer
   """
-  def create_answer(%{type: "select"}, attrs) do
-    create_select_answer(attrs)
+  def create_answer(%{type: "select", required: true}, attrs) do
+    %SelectAnswer{}
+    |> SelectAnswer.changeset(attrs)
+    |> validate_length(:selected_options, min: 1)
+    |> Repo.insert()
+  end
+
+  def create_answer(%{type: "select", required: false}, attrs) do
+    %SelectAnswer{}
+    |> SelectAnswer.changeset(attrs)
+    |> Repo.insert()
   end
 
   def create_answer(%{type: "fill"}, attrs) do
