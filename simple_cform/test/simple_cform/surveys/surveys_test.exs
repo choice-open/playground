@@ -68,12 +68,14 @@ defmodule SimpleCform.SurveysTest do
     }
   end
 
-  def fill_question_fixture(id: id) do
+  def fill_question_fixture(id: id), do: fill_question_fixture(id: id, required: true)
+
+  def fill_question_fixture(id: id, required: required) do
     %{
       id: id,
       type: "fill",
       title: "Fake Fill Question Title",
-      required: false
+      required: required
     }
   end
 
@@ -172,6 +174,30 @@ defmodule SimpleCform.SurveysTest do
 
       assert fill_answer.question_id == 1
       assert fill_answer.content == "Test Content"
+    end
+
+    test "with a required fill question validates content cannot be empty" do
+      fill_question = fill_question_fixture(id: 1, required: true)
+
+      assert {:error, changeset} =
+               Surveys.create_answer(fill_question, %{question_id: 1, content: ""})
+
+      assert "can't be blank" in errors_on(changeset).content
+    end
+
+    test "with a required fill question validates content cannot be nil" do
+      fill_question = fill_question_fixture(id: 1, required: true)
+
+      assert {:error, changeset} =
+               Surveys.create_answer(fill_question, %{question_id: 1, content: nil})
+
+      assert "can't be blank" in errors_on(changeset).content
+    end
+
+    test "with a non-required fill question does not validate content is required" do
+      fill_question = fill_question_fixture(id: 1, required: false)
+
+      assert {:ok, _answer} = Surveys.create_answer(fill_question, %{question_id: 1, content: ""})
     end
   end
 

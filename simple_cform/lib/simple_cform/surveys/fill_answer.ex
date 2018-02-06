@@ -14,6 +14,6 @@ defmodule SimpleCform.Surveys.FillAnswer do
   def changeset(%FillAnswer{} = fill_answer, attrs) do
     fill_answer
     |> cast(attrs, [:content, :question_id])
-    |> validate_required([:content, :question_id])
+    |> validate_required([:question_id])
   end
 end

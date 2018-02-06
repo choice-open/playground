@@ -8,6 +8,7 @@ defmodule SimpleCform.Surveys do
   alias SimpleCform.Repo
 
   alias SimpleCform.Surveys.SelectAnswer
+  alias SimpleCform.Surveys.FillAnswer
 
   @doc """
   It's an in-memory repo,
@@ -96,8 +97,17 @@ defmodule SimpleCform.Surveys do
     |> Repo.insert()
   end
 
-  def create_answer(%{type: "fill"}, attrs) do
-    create_fill_answer(attrs)
+  def create_answer(%{type: "fill", required: true}, attrs) do
+    %FillAnswer{}
+    |> FillAnswer.changeset(attrs)
+    |> validate_required(:content)
+    |> Repo.insert()
+  end
+
+  def create_answer(%{type: "fill", required: false}, attrs) do
+    %FillAnswer{}
+    |> FillAnswer.changeset(attrs)
+    |> Repo.insert()
   end
 
   @doc """
@@ -193,8 +203,6 @@ defmodule SimpleCform.Surveys do
   def change_select_answer(%SelectAnswer{} = select_answer) do
     SelectAnswer.changeset(select_answer, %{})
   end
-
-  alias SimpleCform.Surveys.FillAnswer
 
   @doc """
   Returns the list of fill_answers.
