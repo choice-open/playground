@@ -8,6 +8,7 @@ defmodule SimpleCform.Surveys do
   alias Ecto.Multi
   alias SimpleCform.Repo
 
+  alias SimpleCform.Surveys.Response
   alias SimpleCform.Surveys.SelectAnswer
   alias SimpleCform.Surveys.FillAnswer
 
@@ -62,24 +63,29 @@ defmodule SimpleCform.Surveys do
   Creates a response for a existing survey.
   """
   def create_response(survey, answers_attrs) do
-    survey
-    |> build_response_multi(answers_attrs)
-    |> Repo.transaction()
-    |> case do
-      {:ok, changes} ->
-        answers =
-          changes
-          |> Map.delete(:validate_all_questions_were_answered)
-          |> Map.values()
-          |> Enum.sort_by(fn answer -> answer.question_id end)
+    changeset =
+      %Response{}
+      |> Response.changeset(%{survey_id: survey.id, answers: answers_attrs})
 
-        {:ok, %{survey_id: survey.id, answers: answers}}
+    if changeset.valid? do
+      changeset
+      |> Response.to_multi()
+      |> Repo.transaction()
+      |> case do
+        {:ok, changes} ->
+          answers =
+            changes
+            |> Map.delete(:validate_all_questions_were_answered)
+            |> Map.values()
+            |> Enum.sort_by(fn answer -> answer.question_id end)
 
-      {:error, :validate_all_questions_were_answered, unanswered_questions_ids} ->
-        {:error, :validate_all_questions_were_answered, unanswered_questions_ids}
+          {:ok, %{survey_id: survey.id, answers: answers}}
 
-      {:error, failed_question_id, failed_answer, _} ->
-        {:error, failed_question_id, failed_answer}
+        {:error, failed_question_id, failed_answer, _} ->
+          {:error, failed_question_id, failed_answer}
+      end
+    else
+      {:error, changeset.errors}
     end
   end
 

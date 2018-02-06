@@ -93,36 +93,6 @@ defmodule SimpleCform.SurveysTest do
       }
     end
 
-    test "sets survey_id in response correctly" do
-      survey = survey_fixture(id: 1, questions: [])
-
-      {:ok, %{survey_id: survey_id, answers: []}} = Surveys.create_response(survey, [])
-
-      assert survey_id == 1
-    end
-
-    test "creates a select_answer for select_quostion" do
-      select_question = select_question_fixture(id: 1)
-      survey = survey_fixture(questions: [select_question])
-
-      {:ok, %{answers: [%SelectAnswer{} = select_answer]}} =
-        Surveys.create_response(survey, [%{question_id: 1, selected_options: [1]}])
-
-      assert select_answer.question_id == 1
-      assert select_answer.selected_options == [1]
-    end
-
-    test "creates a fill_answer for fill_question" do
-      fill_question = fill_question_fixture(id: 1)
-      survey = survey_fixture(questions: [fill_question])
-
-      {:ok, %{answers: [%FillAnswer{} = fill_answer]}} =
-        Surveys.create_response(survey, [%{question_id: 1, content: "Test Content"}])
-
-      assert fill_answer.question_id == 1
-      assert fill_answer.content == "Test Content"
-    end
-
     test "creates a select_answer and fill_answer at the same time" do
       select_question = select_question_fixture(id: 1)
       fill_question = fill_question_fixture(id: 2)
@@ -133,59 +103,6 @@ defmodule SimpleCform.SurveysTest do
           %{question_id: 1, selected_options: [1]},
           %{question_id: 2, content: "Test Content"}
         ])
-    end
-
-    test "with a required select question validates selected_options' length" do
-      select_question = select_question_fixture(id: 1, required: true)
-      survey = survey_fixture(id: 1, questions: [select_question])
-
-      assert {:error, 1, changeset} =
-               Surveys.create_response(survey, [%{question_id: 1, selected_options: []}])
-
-      assert "should have at least 1 item(s)" in errors_on(changeset).selected_options
-    end
-
-    test "with a non-required select question does not validates selected_options" do
-      select_question = select_question_fixture(id: 1, required: false)
-      survey = survey_fixture(id: 1, questions: [select_question])
-
-      assert {:ok, _answer} =
-               Surveys.create_response(survey, [%{question_id: 1, selected_options: []}])
-    end
-
-    test "with a required fill question validates content cannot be empty" do
-      fill_question = fill_question_fixture(id: 1, required: true)
-      survey = survey_fixture(id: 1, questions: [fill_question])
-
-      assert {:error, 1, changeset} =
-               Surveys.create_response(survey, [%{question_id: 1, content: ""}])
-
-      assert "can't be blank" in errors_on(changeset).content
-    end
-
-    test "with a required fill question validates content cannot be nil" do
-      fill_question = fill_question_fixture(id: 1, required: true)
-      survey = survey_fixture(id: 1, questions: [fill_question])
-
-      assert {:error, 1, changeset} =
-               Surveys.create_response(survey, [%{question_id: 1, content: nil}])
-
-      assert "can't be blank" in errors_on(changeset).content
-    end
-
-    test "with a non-required fill question does not validate content is required" do
-      fill_question = fill_question_fixture(id: 1, required: false)
-      survey = survey_fixture(id: 1, questions: [fill_question])
-
-      assert {:ok, _answer} = Surveys.create_response(survey, [%{question_id: 1, content: ""}])
-    end
-
-    test "validates all questions are answered" do
-      question = select_question_fixture(id: 1)
-      survey = survey_fixture(id: 1, questions: [question])
-
-      assert {:error, :validate_all_questions_were_answered, [1]} ==
-               Surveys.create_response(survey, [])
     end
   end
 
