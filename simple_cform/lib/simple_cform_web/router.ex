@@ -24,7 +24,10 @@ defmodule SimpleCformWeb.Router do
   scope "/v1", SimpleCformWeb do
     pipe_through(:api)
 
-    resources("/surveys", SurveyController, only: [:show])
+    resources "/surveys", SurveyController, only: [:show] do
+      resources("/statistics", StatisticController, only: [:index])
+    end
+
     resources("/responses", ResponseController, only: [:create])
   end
 end
