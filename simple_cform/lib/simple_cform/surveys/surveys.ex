@@ -66,13 +66,17 @@ defmodule SimpleCform.Surveys do
     |> build_response_multi(answers_attrs)
     |> Repo.transaction()
     |> case do
-      {:ok, answers_changes} ->
+      {:ok, changes} ->
         answers =
-          answers_changes
+          changes
+          |> Map.delete(:validate_all_questions_were_answered)
           |> Map.values()
           |> Enum.sort_by(fn answer -> answer.question_id end)
 
         {:ok, %{survey_id: survey.id, answers: answers}}
+
+      {:error, :validate_all_questions_were_answered, unanswered_questions_ids} ->
+        {:error, :validate_all_questions_were_answered, unanswered_questions_ids}
 
       {:error, failed_question_id, failed_answer, _} ->
         {:error, failed_question_id, failed_answer}
@@ -87,6 +91,29 @@ defmodule SimpleCform.Surveys do
       question = get_question(question_id, survey)
       create_answer(multi, question, attr)
     end)
+    |> Multi.run(:validate_all_questions_were_answered, fn _ ->
+      # HACK: this should be a validation step in Response Changeset, but we don't
+      # have Response module yet, so I put it here for some convenience (it's
+      # easier to raise error here)
+      validate_all_questions_have_answer(survey, answers_attrs)
+    end)
+  end
+
+  defp validate_all_questions_have_answer(survey, answers_attrs) do
+    asked_questions_ids = survey.questions |> Enum.map(& &1.id) |> Enum.sort()
+
+    answered_questions_ids =
+      answers_attrs |> Enum.map(&(&1["question_id"] || &1[:question_id])) |> Enum.sort()
+
+    unanswered_questions_ids =
+      asked_questions_ids
+      |> Enum.filter(&(&1 not in answered_questions_ids))
+
+    if Enum.empty?(unanswered_questions_ids) do
+      {:ok, nil}
+    else
+      {:error, unanswered_questions_ids}
+    end
   end
 
   defp get_question(id, survey) do

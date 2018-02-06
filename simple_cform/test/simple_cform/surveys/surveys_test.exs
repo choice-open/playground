@@ -179,6 +179,14 @@ defmodule SimpleCform.SurveysTest do
 
       assert {:ok, _answer} = Surveys.create_response(survey, [%{question_id: 1, content: ""}])
     end
+
+    test "validates all questions are answered" do
+      question = select_question_fixture(id: 1)
+      survey = survey_fixture(id: 1, questions: [question])
+
+      assert {:error, :validate_all_questions_were_answered, [1]} ==
+               Surveys.create_response(survey, [])
+    end
   end
 
   describe "select_answers" do
