@@ -66,4 +66,42 @@ defmodule SimpleCform.SurveysTest do
         })
     end
   end
+
+  describe "get_statistics/1" do
+    test "returns selected and percentage for each options of a select question" do
+      Surveys.create_response(%{
+        "survey_id" => 1,
+        "answers" => [
+          %{"question_id" => 1, "selected_options" => [1]},
+          %{"question_id" => 2, "content" => "Test Content"}
+        ]
+      })
+
+      assert [
+               %{
+                 question_id: 1,
+                 options: [
+                   %{id: 1, selected: 1, percentage: 100.0}
+                   | _others
+                 ]
+               }
+               | _other_results
+             ] = Surveys.get_statistics(1)
+    end
+
+    test "returns non_empty and percentage for content of a fill questions" do
+      Surveys.create_response(%{
+        "survey_id" => 1,
+        "answers" => [
+          %{"question_id" => 1, "selected_options" => [1]},
+          %{"question_id" => 2, "content" => "Test Content"}
+        ]
+      })
+
+      assert [
+               _select_question_statistics,
+               %{question_id: 2, content: %{non_empty: 1, percentage: 100.0}}
+             ] = Surveys.get_statistics(1)
+    end
+  end
 end

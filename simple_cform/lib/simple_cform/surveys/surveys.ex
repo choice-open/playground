@@ -7,6 +7,8 @@ defmodule SimpleCform.Surveys do
   alias SimpleCform.Repo
 
   alias SimpleCform.Surveys.Response
+  alias SimpleCform.Surveys.SelectAnswer
+  alias SimpleCform.Surveys.FillAnswer
 
   @doc """
   It's an in-memory repo,
@@ -82,5 +84,38 @@ defmodule SimpleCform.Surveys do
     else
       {:error, changeset.errors}
     end
+  end
+
+  def get_statistics(survey_id) do
+    survey_id
+    |> get_survey!()
+    |> Map.fetch!(:questions)
+    |> Enum.map(&get_question_statistic/1)
+  end
+
+  defp get_question_statistic(%{type: "select", id: question_id, options: options}) do
+    %{
+      question_id: question_id,
+      options: options |> Enum.map(&get_option_statistic(question_id, &1))
+    }
+  end
+
+  defp get_question_statistic(%{type: "fill", id: question_id}) do
+    total = question_id |> FillAnswer.count() |> Repo.one()
+    non_empty = question_id |> FillAnswer.non_empty_count() |> Repo.one()
+
+    %{
+      question_id: question_id,
+      content: %{non_empty: non_empty, percentage: non_empty / total * 100}
+    }
+  end
+
+  defp get_option_statistic(question_id, %{id: option_id}) do
+    # NOTE: N+1 query here, but i think we don't have many options now, so it's
+    # acceptable for now
+    total = question_id |> SelectAnswer.count() |> Repo.one()
+    selected = question_id |> SelectAnswer.count_option(option_id) |> Repo.one()
+
+    %{id: option_id, selected: selected, percentage: selected / total * 100}
   end
 end
