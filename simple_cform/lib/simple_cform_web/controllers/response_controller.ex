@@ -11,6 +11,11 @@ defmodule SimpleCformWeb.ResponseController do
       |> put_status(:created)
       |> render("create.json", response: response)
     else
+      {:error, :validate_all_questions_were_answered, unanswered_questions_ids} ->
+        conn
+        |> put_status(:bad_request)
+        |> render("error.json", unanswered_questions_ids: unanswered_questions_ids)
+
       {:error, failed_question_id, failed_answer} ->
         conn
         |> put_status(:bad_request)

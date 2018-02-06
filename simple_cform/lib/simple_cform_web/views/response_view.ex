@@ -28,6 +28,15 @@ defmodule SimpleCformWeb.ResponseView do
     }
   end
 
+  def render("error.json", %{unanswered_questions_ids: unanswered_questions_ids}) do
+    %{
+      error: %{
+        unanswered_questions_ids: unanswered_questions_ids,
+        reason: %{answers: "Some questions were not answered."}
+      }
+    }
+  end
+
   defp to_json(%SelectAnswer{} = select_answer) do
     %{
       question_id: select_answer.question_id,

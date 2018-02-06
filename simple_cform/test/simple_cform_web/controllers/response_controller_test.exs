@@ -53,6 +53,39 @@ defmodule SimpleCformWeb.ResponseControllerTest do
              }
     end
 
+    test "returns 400 :bad_request when a question is not answered", %{conn: conn} do
+      conn =
+        post(
+          conn,
+          "/v1/responses",
+          survey_id: 1,
+          answers: [
+            %{"question_id" => 1, "selected_options" => [1]}
+          ]
+        )
+
+      assert conn.status == 400
+    end
+
+    test "renders correctly when a question is not answered", %{conn: conn} do
+      conn =
+        post(
+          conn,
+          "/v1/responses",
+          survey_id: 1,
+          answers: [
+            %{"question_id" => 1, "selected_options" => [1]}
+          ]
+        )
+
+      assert json_response(conn, :bad_request) == %{
+               "error" => %{
+                 "unanswered_questions_ids" => [2],
+                 "reason" => %{"answers" => "Some questions were not answered."}
+               }
+             }
+    end
+
     test "returns 400 :bad_request when response creation failed", %{conn: conn} do
       conn =
         post(
