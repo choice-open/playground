@@ -134,70 +134,50 @@ defmodule SimpleCform.SurveysTest do
           %{question_id: 2, content: "Test Content"}
         ])
     end
-  end
-
-  describe "create_answer/2" do
-    alias SimpleCform.Surveys.SelectAnswer
-    alias SimpleCform.Surveys.FillAnswer
-
-    test "with a select type question creates a select_answer" do
-      select_question = select_question_fixture(id: 1)
-
-      {:ok, %SelectAnswer{} = select_answer} =
-        Surveys.create_answer(select_question, %{question_id: 1, selected_options: [1]})
-
-      assert select_answer.question_id == 1
-      assert select_answer.selected_options == [1]
-    end
 
     test "with a required select question validates selected_options' length" do
       select_question = select_question_fixture(id: 1, required: true)
+      survey = survey_fixture(id: 1, questions: [select_question])
 
-      assert {:error, changeset} =
-               Surveys.create_answer(select_question, %{question_id: 1, selected_options: []})
+      assert {:error, 1, changeset} =
+               Surveys.create_response(survey, [%{question_id: 1, selected_options: []}])
 
       assert "should have at least 1 item(s)" in errors_on(changeset).selected_options
     end
 
     test "with a non-required select question does not validates selected_options" do
       select_question = select_question_fixture(id: 1, required: false)
+      survey = survey_fixture(id: 1, questions: [select_question])
 
       assert {:ok, _answer} =
-               Surveys.create_answer(select_question, %{question_id: 1, selected_options: []})
-    end
-
-    test "with a fill type question creates a fill_answer" do
-      fill_question = fill_question_fixture(id: 1)
-
-      {:ok, %FillAnswer{} = fill_answer} =
-        Surveys.create_answer(fill_question, %{question_id: 1, content: "Test Content"})
-
-      assert fill_answer.question_id == 1
-      assert fill_answer.content == "Test Content"
+               Surveys.create_response(survey, [%{question_id: 1, selected_options: []}])
     end
 
     test "with a required fill question validates content cannot be empty" do
       fill_question = fill_question_fixture(id: 1, required: true)
+      survey = survey_fixture(id: 1, questions: [fill_question])
 
-      assert {:error, changeset} =
-               Surveys.create_answer(fill_question, %{question_id: 1, content: ""})
+      assert {:error, 1, changeset} =
+               Surveys.create_response(survey, [%{question_id: 1, content: ""}])
 
       assert "can't be blank" in errors_on(changeset).content
     end
 
     test "with a required fill question validates content cannot be nil" do
       fill_question = fill_question_fixture(id: 1, required: true)
+      survey = survey_fixture(id: 1, questions: [fill_question])
 
-      assert {:error, changeset} =
-               Surveys.create_answer(fill_question, %{question_id: 1, content: nil})
+      assert {:error, 1, changeset} =
+               Surveys.create_response(survey, [%{question_id: 1, content: nil}])
 
       assert "can't be blank" in errors_on(changeset).content
     end
 
     test "with a non-required fill question does not validate content is required" do
       fill_question = fill_question_fixture(id: 1, required: false)
+      survey = survey_fixture(id: 1, questions: [fill_question])
 
-      assert {:ok, _answer} = Surveys.create_answer(fill_question, %{question_id: 1, content: ""})
+      assert {:ok, _answer} = Surveys.create_response(survey, [%{question_id: 1, content: ""}])
     end
   end
 

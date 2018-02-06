@@ -5,6 +5,7 @@ defmodule SimpleCform.Surveys do
 
   import Ecto.Query, warn: false
   import Ecto.Changeset
+  alias Ecto.Multi
   alias SimpleCform.Repo
 
   alias SimpleCform.Surveys.SelectAnswer
@@ -61,16 +62,26 @@ defmodule SimpleCform.Surveys do
   Creates a response for a existing survey.
   """
   def create_response(survey, answers_attrs) do
-    answers =
-      for attr <- answers_attrs,
-          # HACK: support both types of question_id from controller and test
-          question_id = attr["question_id"] || attr[:question_id],
-          question = get_question(question_id, survey),
-          {:ok, answer} = create_answer(question, attr) do
-        answer
-      end
+    answers_attrs
+    |> Enum.reduce(Multi.new(), fn attr, multi ->
+      # HACK: support both types of question_id from controller and test
+      question_id = attr["question_id"] || attr[:question_id]
+      question = get_question(question_id, survey)
+      create_answer(multi, question, attr)
+    end)
+    |> Repo.transaction()
+    |> case do
+      {:ok, answers_changes} ->
+        answers =
+          answers_changes
+          |> Map.values()
+          |> Enum.sort_by(fn answer -> answer.question_id end)
 
-    {:ok, %{survey_id: survey.id, answers: answers}}
+        {:ok, %{survey_id: survey.id, answers: answers}}
+
+      {:error, failed_question_id, failed_reason, _} ->
+        {:error, failed_question_id, failed_reason}
+    end
   end
 
   defp get_question(id, survey) do
@@ -78,36 +89,43 @@ defmodule SimpleCform.Surveys do
     |> Enum.find(fn question -> question.id == id end)
   end
 
-  @doc """
-  Creates an answer for a given question.
-  The answer's type is based on question's type.
-  - SelectQuestion (%{type: "select"}) -> SelectAnswer
-  - FillQuestion (%{type: "fill"}) -> FillAnswer
-  """
-  def create_answer(%{type: "select", required: true}, attrs) do
-    %SelectAnswer{}
-    |> SelectAnswer.changeset(attrs)
-    |> validate_length(:selected_options, min: 1)
-    |> Repo.insert()
+  @doc false
+  defp create_answer(multi, %{id: question_id, type: "select", required: true}, attrs) do
+    changeset =
+      %SelectAnswer{}
+      |> SelectAnswer.changeset(attrs)
+      |> validate_length(:selected_options, min: 1)
+
+    multi
+    |> Multi.insert(question_id, changeset)
   end
 
-  def create_answer(%{type: "select", required: false}, attrs) do
-    %SelectAnswer{}
-    |> SelectAnswer.changeset(attrs)
-    |> Repo.insert()
+  defp create_answer(multi, %{id: question_id, type: "select", required: false}, attrs) do
+    changeset =
+      %SelectAnswer{}
+      |> SelectAnswer.changeset(attrs)
+
+    multi
+    |> Multi.insert(question_id, changeset)
   end
 
-  def create_answer(%{type: "fill", required: true}, attrs) do
-    %FillAnswer{}
-    |> FillAnswer.changeset(attrs)
-    |> validate_required(:content)
-    |> Repo.insert()
+  defp create_answer(multi, %{id: question_id, type: "fill", required: true}, attrs) do
+    changeset =
+      %FillAnswer{}
+      |> FillAnswer.changeset(attrs)
+      |> validate_required(:content)
+
+    multi
+    |> Multi.insert(question_id, changeset)
   end
 
-  def create_answer(%{type: "fill", required: false}, attrs) do
-    %FillAnswer{}
-    |> FillAnswer.changeset(attrs)
-    |> Repo.insert()
+  defp create_answer(multi, %{id: question_id, type: "fill", required: false}, attrs) do
+    changeset =
+      %FillAnswer{}
+      |> FillAnswer.changeset(attrs)
+
+    multi
+    |> Multi.insert(question_id, changeset)
   end
 
   @doc """
