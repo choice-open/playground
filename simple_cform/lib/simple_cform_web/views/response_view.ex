@@ -26,7 +26,7 @@ defmodule SimpleCformWeb.ResponseView do
   defp to_json(%FillAnswer{} = fill_answer) do
     %{
       question_id: fill_answer.question_id,
-      content: "Test Content"
+      content: fill_answer.content
     }
   end
 end
