@@ -25,5 +25,6 @@ defmodule SimpleCformWeb.Router do
     pipe_through(:api)
 
     resources("/surveys", SurveyController, only: [:show])
+    resources("/responses", ResponseController, only: [:create])
   end
 end
