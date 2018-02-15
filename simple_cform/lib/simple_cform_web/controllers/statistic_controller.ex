@@ -6,7 +6,6 @@ defmodule SimpleCformWeb.StatisticController do
   def index(conn, %{"survey_id" => survey_id}) do
     statistics =
       survey_id
-      |> String.to_integer()
       |> Surveys.get_statistics()
 
     conn

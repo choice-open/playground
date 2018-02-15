@@ -14,6 +14,10 @@ defmodule SimpleCform.Surveys do
   It's an in-memory repo,
   which always returns the same result.
   """
+  def get_survey!(id) when is_binary(id) do
+    id |> String.to_integer() |> get_survey!()
+  end
+
   def get_survey!(1) do
     %{
       id: 1,

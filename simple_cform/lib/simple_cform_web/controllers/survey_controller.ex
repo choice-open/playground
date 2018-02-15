@@ -5,7 +5,6 @@ defmodule SimpleCformWeb.SurveyController do
   def show(conn, %{"id" => id}) do
     survey =
       id
-      |> String.to_integer()
       |> Surveys.get_survey!()
 
     render(conn, "show.json", survey: survey)
